@@ -15,7 +15,8 @@
     "express": "^4.18.1",
     "express-formidable": "^1.2.0",
     "mongoose": "^6.3.5",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "url-slug": "^3.0.4"
   },
   "description": ""
 }
