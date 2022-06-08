@@ -15,8 +15,38 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
+/* Send all forms or messages*/
+router.get("/forms", async (req, res) => {
+  try {
+    const forms = await Form.find();
+    if (forms.length === 0) {
+      return res.json({ message: "Form is empty" });
+    }
+    res.json(forms);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+router.get("/form/:slug", async (req, res) => {
+  try {
+    console.log('req.params.slug', req.params.slug);
+    const forms = await Form.find({slug: req.params.slug});
+    console.log('forms', forms);
+    if (forms.length === 0) {
+      return res.status(404).json({ message: "no form matches" });
+    }
+    res.json(forms[0]);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+
 /* Creating a new form. */
-router.post("/backoffice/create", async (req, res) => {
+router.post("/form/create", async (req, res) => {
   try {
     console.log("req.fields", req.fields);
     console.log("req.files", req.files);
@@ -50,12 +80,7 @@ router.post("/backoffice/create", async (req, res) => {
       newForm.picture = pictureToUpload.secure_url;
     }
 
-    //A RETRAVAILLER AVEC LES FORMULAIRE EN FRONT
-    newForm.elements[0] = {
-      elementsType: req.fields.elementsType,
-      elementsValue: req.fields.elementsValue,
-    };
-    //A RETRAVAILLER AVEC LES FORMULAIRE EN FRONT
+    newForm.elements = req.fields.question;
 
     await newForm.save();
 
@@ -66,22 +91,8 @@ router.post("/backoffice/create", async (req, res) => {
   }
 });
 
-/* Send all forms or messages*/
-router.get("/backoffice", async (req, res) => {
-  try {
-    const forms = await Form.find({});
-    if (forms.length === 0) {
-      return res.json({ message: "Form is empty" });
-    }
-    res.json(forms);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error" });
-  }
-});
-
 /* Update a form by its id */
-router.put("/backoffice/update/:_id", async (req, res) => {
+router.put("/form/update/:_id", async (req, res) => {
   try {
     const formToUpdate = await Form.findById(req.params._id);
     const formNewData = {};
@@ -101,18 +112,16 @@ router.put("/backoffice/update/:_id", async (req, res) => {
       formToUpdate.picture = pictureToUpload.secure_url;
     }
 
-    if (req.fields.elementsType && req.fields.elementsType !== "" ) {
-      formToUpdate.elements[0].elementsType = req.fields.elementsType
+    if (req.fields.elementsType && req.fields.elementsType !== "") {
+      formToUpdate.elements[0].elementsType = req.fields.elementsType;
     }
-    if (req.fields.elementsValue && req.fields.elementsValue !== "" ) {
-      formToUpdate.elements[0].elementsValue = req.fields.elementsValue
+    if (req.fields.elementsValue && req.fields.elementsValue !== "") {
+      formToUpdate.elements[0].elementsValue = req.fields.elementsValue;
     }
-
 
     // const formUpdate = await Form.findByIdAndUpdate(req.params._id, formNewData, {new : true});
 
     await formToUpdate.save();
-
 
     return res.json(formToUpdate.elements[0]);
     // return res.json({ message: "/backoffice/update/:id" });
@@ -123,7 +132,7 @@ router.put("/backoffice/update/:_id", async (req, res) => {
 });
 
 /* Delete a form by its id */
-router.delete("/backoffice/delete/:_id", async (req, res) => {
+router.delete("/form/delete/:_id", async (req, res) => {
   try {
     const form = await Form.findByIdAndDelete(req.params.id);
     if (!form) {

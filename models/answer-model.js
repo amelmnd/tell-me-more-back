@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const Answer = mongoose.model("Answer", {
   formId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "form",
+    ref: "Form",
   },
   answerData: {
     type: Object,
