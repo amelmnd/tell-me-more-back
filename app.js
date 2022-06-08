@@ -13,8 +13,13 @@ app.use(cors());
 var morgan = require("morgan");
 app.use(morgan("tiny"));
 
+/*form routes for create, read, update and delete form data  */
 const formRoutes = require("./routes/form-routes");
 app.use(formRoutes);
+
+/*form routes for create, read, update and delete answer data  */
+const answerRoutes = require("./routes/answer-routes");
+app.use(answerRoutes);
 
 app.get("*", (req, res) => {
   res.status(404).json({ message: "Oups 404" });

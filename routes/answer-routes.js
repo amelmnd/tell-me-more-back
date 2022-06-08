@@ -63,4 +63,56 @@ router.delete("/answers/delete/:_id", async (req, res) => {
   }
 });
 
+const mongodb = require("mongodb").MongoClient;
+const Json2csvParser = require("json2csv").Parser;
+const path = require("path");
+const fs = require("fs");
+// let url = "mongodb://username:password@localhost:27017/";
+let url = "mongodb://localhost:27017/";
+
+router.get("/answers/dowloadCsv/:id", async (req, res) => {
+  const date = Date.now();
+
+  mongodb.connect(
+    process.env.MONGOOSE_URI,
+    { useNewUrlParser: true, useUnifiedTopology: true },
+    (err, client) => {
+      if (err) throw err;
+      client
+        .db("tellMeMore")
+        .collection("answers")
+        .find({})
+        .toArray((err, data) => {
+          if (err) throw err;
+
+          const filesData = [];
+
+          for (let index = 0; index < data.length; index++) {
+            if (data[index].formId == req.params.id) {
+              filesData.push(data[index].answerData);
+            }
+          }
+
+          const json2csvParser = new Json2csvParser({ header: true });
+          const csvData = json2csvParser.parse(filesData);
+          const filePath = path.join(
+            __dirname,
+            "..",
+            "public",
+            `answer-${req.params.id}-${date}.csv`
+          );
+
+          fs.writeFile(filePath, csvData, function (error) {
+            if (error) throw error;
+            console.log("Write to bezkoder_mongodb_fs.csv successfully!");
+          });
+
+          res.download(filePath, `answer-${req.params.id}-${date}.csv`);
+          client.close();
+        });
+      // res.json({ message: "Write to bezkoder_mongodb_fs.csv successfully!" });
+    }
+  );
+});
+
 module.exports = router;
