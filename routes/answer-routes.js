@@ -66,8 +66,11 @@ router.delete("/answers/delete/:_id", async (req, res) => {
 const mongodb = require("mongodb").MongoClient;
 const Json2csvParser = require("json2csv").Parser;
 const path = require("path");
+const { join } = require("path");
+
 const fs = require("fs");
-// let url = "mongodb://username:password@localhost:27017/";
+const { promises: fsp } = require("fs");
+
 let url = "mongodb://localhost:27017/";
 
 router.get("/answers/dowloadCsv/:id", async (req, res) => {
@@ -83,6 +86,7 @@ router.get("/answers/dowloadCsv/:id", async (req, res) => {
         .collection("answers")
         .find({})
         .toArray((err, data) => {
+          console.log("data", data);
           if (err) throw err;
 
           const filesData = [];
@@ -92,13 +96,13 @@ router.get("/answers/dowloadCsv/:id", async (req, res) => {
               filesData.push(data[index].answerData);
             }
           }
-
           const json2csvParser = new Json2csvParser({ header: true });
           const csvData = json2csvParser.parse(filesData);
+          console.log('filesData', filesData);
           const filePath = path.join(
             __dirname,
             "..",
-            "public",
+            "answersCSV",
             `answer-${req.params.id}-${date}.csv`
           );
 
@@ -109,8 +113,8 @@ router.get("/answers/dowloadCsv/:id", async (req, res) => {
 
           res.download(filePath, `answer-${req.params.id}-${date}.csv`);
           client.close();
+          res.json(filesData);
         });
-      // res.json({ message: "Write to bezkoder_mongodb_fs.csv successfully!" });
     }
   );
 });

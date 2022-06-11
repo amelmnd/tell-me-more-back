@@ -17,7 +17,7 @@ const Form = mongoose.model("Form", {
     secondary: String,
     text: String,
   },
-  elements: Array,
+  elements: String,
 });
 
 module.exports = Form;

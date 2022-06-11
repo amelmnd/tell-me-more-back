@@ -28,12 +28,23 @@ router.get("/forms", async (req, res) => {
     res.status(500).json({ message: "Error" });
   }
 });
+router.get("/form/:id", async (req, res) => {
+  try {
+    const form = await Form.findById(req.params.id);
+    if (form.length === 0) {
+      return res.status(404).json({ message: "no form matches" });
+    }
+    res.json(form);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Error" });
+  }
+});
 
-router.get("/form/:slug", async (req, res) => {
+router.get("/form-slug/:slug", async (req, res) => {
   try {
     console.log('req.params.slug', req.params.slug);
-    const forms = await Form.find({slug: req.params.slug});
-    console.log('forms', forms);
+    const forms = await Form.find({ slug: req.params.slug });
     if (forms.length === 0) {
       return res.status(404).json({ message: "no form matches" });
     }
@@ -43,7 +54,6 @@ router.get("/form/:slug", async (req, res) => {
     res.status(500).json({ message: "Error" });
   }
 });
-
 
 /* Creating a new form. */
 router.post("/form/create", async (req, res) => {
@@ -92,39 +102,29 @@ router.post("/form/create", async (req, res) => {
 });
 
 /* Update a form by its id */
-router.put("/form/update/:_id", async (req, res) => {
+router.put("/form/update/:id", async (req, res) => {
   try {
-    const formToUpdate = await Form.findById(req.params._id);
-    const formNewData = {};
-    console.log("req.fields", req.fields);
-
+    const formToUpdate = await Form.findById(req.params.id);
+    
     if (req.fields.title) {
       formToUpdate.title = req.fields.title;
     }
     if (req.fields.slug) {
       return res.status(400).json({ message: "Slug not editable" });
     }
-
+    
     if (req.files.picture && req.files.picture !== "") {
       const pictureToUpload = await cloudinary.uploader.upload(
         req.files.picture.path
-      );
-      formToUpdate.picture = pictureToUpload.secure_url;
-    }
-
-    if (req.fields.elementsType && req.fields.elementsType !== "") {
-      formToUpdate.elements[0].elementsType = req.fields.elementsType;
-    }
-    if (req.fields.elementsValue && req.fields.elementsValue !== "") {
-      formToUpdate.elements[0].elementsValue = req.fields.elementsValue;
-    }
-
-    // const formUpdate = await Form.findByIdAndUpdate(req.params._id, formNewData, {new : true});
-
+        );
+        formToUpdate.picture = pictureToUpload.secure_url;
+      }
+      
+      formToUpdate.elements = req.fields.question;
+      console.log('formToUpdate', formToUpdate);
     await formToUpdate.save();
 
-    return res.json(formToUpdate.elements[0]);
-    // return res.json({ message: "/backoffice/update/:id" });
+    return res.json(formToUpdate);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error" });
@@ -132,7 +132,7 @@ router.put("/form/update/:_id", async (req, res) => {
 });
 
 /* Delete a form by its id */
-router.delete("/form/delete/:_id", async (req, res) => {
+router.delete("/form/delete/:id", async (req, res) => {
   try {
     const form = await Form.findByIdAndDelete(req.params.id);
     if (!form) {
