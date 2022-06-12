@@ -12,11 +12,7 @@ const Form = mongoose.model("Form", {
     unique: true,
   },
   picture: String,
-  color: {
-    primary: String,
-    secondary: String,
-    text: String,
-  },
+  color: String,
   elements: String,
 });
 
