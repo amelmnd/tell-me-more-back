@@ -9,12 +9,9 @@ mongoose.connect(process.env.MONGOOSE_URI);
 
 router.get("/answers/:formId", async (req, res) => {
   try {
-    console.log("req.params.formId", req.params.formId);
-
     const answers = await Answer.find({ formId: req.params.formId }).populate(
       "formId"
     );
-    console.log("answers", answers);
 
     res.json(answers);
   } catch (error) {
@@ -34,9 +31,6 @@ router.post("/answer/create", async (req, res) => {
     res.status(400).json({ message: "Error" });
   }
 });
-
-// router.delete("/answers/:id")
-// router.delete("/answer/:id")
 
 router.delete("/answer/delete/:_id", async (req, res) => {
   try {
@@ -86,29 +80,18 @@ router.get("/answers/dowloadCsv/:id", async (req, res) => {
         .collection("answers")
         .find({})
         .toArray((err, data) => {
-          console.log("data", data);
           if (err) throw err;
 
           const filesData = [];
-
-          for (let index = 0; index < data.length; index++) {
-            if (data[index].formId == req.params.id) {
-              filesData.push(data[index].answerData);
-            }
-          }
           const json2csvParser = new Json2csvParser({ header: true });
-          const csvData = json2csvParser.parse(filesData);
-          console.log('filesData', filesData);
+          const csvData = json2csvParser.parse(data);
           const filePath = path.join(
             __dirname,
-            "..",
-            "answersCSV",
             `answer-${req.params.id}-${date}.csv`
           );
 
           fs.writeFile(filePath, csvData, function (error) {
             if (error) throw error;
-            console.log("Write to bezkoder_mongodb_fs.csv successfully!");
           });
 
           res.download(filePath, `answer-${req.params.id}-${date}.csv`);
